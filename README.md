@@ -203,36 +203,3 @@ waste-management/
 ├── requirements.txt    # Project dependencies
 └── README.md           # This file
 ```
-
-### Adding New Features
-
-1. Create a new model in `app/models/`
-2. Create database migration: `flask db migrate -m "Description"`
-3. Apply migration: `flask db upgrade`
-4. Create routes in `app/routes/`
-5. Add tests in `tests/`
-6. Update API documentation
-
-## Troubleshooting
-
-### Common Issues
-
-1. Database Connection
-   - Ensure PostgreSQL is running
-   - Check DATABASE_URL in .env
-   - Verify database exists
-
-2. Migration Issues
-   - Delete migrations folder
-   - Run `flask db init` again
-   - Create and apply new migration
-
-3. Authentication Issues
-   - Check JWT_SECRET_KEY in .env
-   - Verify token in request header
-   - Check user permissions
-
-4. Module Not Found Errors
-   - Ensure virtual environment is activated
-   - Check that all dependencies are installed
-   - If "No module named 'app'" error occurs, make sure you're running commands from the project root directory
