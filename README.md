@@ -152,17 +152,6 @@ python -m pytest tests/test_auth.py
 python -m pytest tests/test_auth.py::test_login
 ```
 
-### Note on Tests
-
-If you encounter a `AttributeError: db` in the `test_delete_user` test, it means you're using a newer version of Flask-SQLAlchemy where the `db` attribute access has been deprecated. Fix this by modifying the test in `tests/test_users.py` to import the db object directly:
-
-```python
-# Change this line:
-db = app.extensions['sqlalchemy'].db
-
-# To this:
-from app import db
-```
 
 ## API Documentation
 
