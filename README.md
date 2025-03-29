@@ -10,6 +10,10 @@ A Flask-based waste management system that helps organizations track and manage 
 - Waste entry tracking
 - Waste analytics and reporting
 
+## System Architecture
+
+For details on the system architecture, database schema, and permission model, see the [ARCHITECTURE.md](ARCHITECTURE.md) document.
+
 ## Prerequisites
 
 - Python 3.8 or higher
@@ -136,16 +140,16 @@ The application includes a comprehensive test suite. To run the tests:
 
 ```bash
 # Run all tests
-pytest
+python -m pytest
 
 # Run tests with coverage report
-pytest --cov=app --cov-report=html
+python -m pytest --cov=app --cov-report=html
 
 # Run a specific test file
-pytest tests/test_auth.py
+python -m pytest tests/test_auth.py
 
 # Run a specific test
-pytest tests/test_auth.py::test_login
+python -m pytest tests/test_auth.py::test_login
 ```
 
 ### Note on Tests
@@ -243,15 +247,3 @@ waste-management/
    - Ensure virtual environment is activated
    - Check that all dependencies are installed
    - If "No module named 'app'" error occurs, make sure you're running commands from the project root directory
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
