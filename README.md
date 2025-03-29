@@ -51,7 +51,7 @@ If you prefer to set up the project manually:
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone git@github.com:fasilminale/wasteer-tracking-system.git
 cd waste-management
 ```
 
