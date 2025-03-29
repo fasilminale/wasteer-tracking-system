@@ -28,8 +28,8 @@ The easiest way to set up the project is using the provided setup script:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd waste-management
+git clone git@github.com:fasilminale/wasteer-tracking-system.git
+cd wasteer-tracking-system
 
 # Make the setup script executable
 chmod +x setup.sh
@@ -52,7 +52,7 @@ If you prefer to set up the project manually:
 1. Clone the repository:
 ```bash
 git clone git@github.com:fasilminale/wasteer-tracking-system.git
-cd waste-management
+cd wasteer-tracking-system
 ```
 
 2. Create and activate a virtual environment:
@@ -188,7 +188,7 @@ python -m pytest tests/test_auth.py::test_login
 ### Project Structure
 
 ```
-waste-management/
+wasteer-tracking-system/
 ├── app/
 │   ├── models/         # Database models
 │   ├── routes/         # API routes
