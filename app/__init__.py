@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -26,6 +27,7 @@ def create_app(test_config=None):
             SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL'),
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
             JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY', 'dev-jwt-key'),
+            JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=1),
             JWT_TOKEN_LOCATION=["headers"],
             JWT_HEADER_NAME="Authorization",
             JWT_HEADER_TYPE="Bearer",
