@@ -57,9 +57,20 @@ The system implements a role-based access control (RBAC) model with three roles:
 
 | Role     | Permissions                                      |
 |----------|--------------------------------------------------|
-| Admin    | Full access to all entities and operations       |
-| Manager  | Access to team's data and management functions   |
-| Employee | Can only create and view their own waste entries |
+| Admin    | - Full access to all entities and operations     |
+|          | - Can view and manage all teams                  |
+|          | - Can access overall analytics                   |
+|          | - Can optionally filter analytics by team        |
+|          | - Can manage all users and teams                 |
+|          | - Can create waste entries for any team by specifying team_id       |  
+| Manager  | - Can view and manage their team's data          |
+|          | - Can view team members                          |
+|          | - Can access team-level analytics                |
+|          | - Cannot access other teams' data                |
+| Employee | - Can create and view their own waste entries    |
+|          | - Can view their own profile                     |
+|          | - Cannot view team members                       |
+|          | - Cannot access analytics                        |
 
 ### Implementation
 
@@ -79,16 +90,30 @@ Permissions are enforced through Flask route decorators in `app/utils/auth.py`:
    In route handlers, additional filtering is applied based on user role:
 
    ```python
-   # Example from get_waste_entries():
-   if team_id and user.is_admin():
-       # Admin can filter by any team_id
-       query = query.filter(WasteEntry.team_id == team_id)
-   elif not user.is_admin() and user.is_manager():
-       # Managers can only see their team's entries
+   # Example from get_waste_analytics():
+   if not user.is_admin():
+       # Managers can only see their team's data
        query = query.filter(WasteEntry.team_id == user.team_id)
-   elif not user.is_admin() and not user.is_manager():
-       # Employees can only see their own entries
-       query = query.filter(WasteEntry.user_id == user.id)
+   elif team_id:
+       # Admins can optionally filter by team
+       query = query.filter(WasteEntry.team_id == team_id)
    ```
 
-This multi-layered permission model ensures data isolation between teams and enforces proper access control based on user roles. It maintains security and privacy throughout the application by applying permissions at both the route level and the data query level. 
+   ```python
+   # Example from get_waste_entries():
+   if not user.is_admin() and not user.is_manager():
+       # Employees can only see their own entries
+       query = query.filter(WasteEntry.user_id == user.id)
+   elif not user.is_admin():
+       # Managers can see all entries in their team
+       query = query.filter(WasteEntry.team_id == user.team_id)
+   ```
+
+This multi-layered permission model ensures:
+1. Data isolation between teams
+2. Proper access control based on user roles
+3. Team-level analytics for managers
+4. Overall analytics for admins
+5. Restricted access for employees to their own entries only
+
+The system maintains security and privacy by applying permissions at both the route level and the data query level, ensuring users can only access and modify data they are authorized to handle. 
