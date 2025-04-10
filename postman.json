@@ -1,0 +1,268 @@
+{
+    "info": {
+        "name": "Waste Management System",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/register",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "register"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"testpassword\",\n    \"role\": \"employee\",\n    \"team_id\": 1\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "login"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpassword\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/profile",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "profile"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Waste Management",
+            "item": [
+                {
+                    "name": "Create Waste Entry",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/waste",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "waste"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"waste_type\": \"paper\",\n    \"weight\": 1.5,\n    \"description\": \"Test waste entry\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get Waste Entries",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/waste",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "waste"],
+                            "query": [
+                                {
+                                    "key": "team_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "waste_type",
+                                    "value": "paper",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "start_date",
+                                    "value": "2024-01-01",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "end_date",
+                                    "value": "2024-12-31",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Waste Analytics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/waste/analytics",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "waste", "analytics"],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "week",
+                                    "description": "Options: week, month, year"
+                                },
+                                {
+                                    "key": "team_id",
+                                    "value": "1",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "waste_type",
+                                    "value": "paper",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Teams",
+            "item": [
+                {
+                    "name": "Create Team",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/teams",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "teams"]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"New Team\",\n    \"description\": \"Test team description\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get Teams",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/teams",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "teams"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Team by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/teams/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "teams", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Team Members",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/teams/1/members",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "teams", "1", "members"]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "your_jwt_token_here",
+            "type": "string"
+        }
+    ]
+}
