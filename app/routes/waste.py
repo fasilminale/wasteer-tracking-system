@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from app import db
-from app.models import WasteEntry, WasteType, User
+from app.models import WasteEntry, WasteType, User, Team
 from app.utils import employee_required, manager_required
 
 waste_bp = Blueprint('waste', __name__)
@@ -19,6 +19,7 @@ def create_waste_entry():
     waste_type_name = data.get('waste_type')
     weight = data.get('weight')
     description = data.get('description')
+    team_id = data.get('team_id')
 
     # Validate required fields
     if not waste_type_name or not weight:
@@ -30,12 +31,23 @@ def create_waste_entry():
     except ValueError:
         return jsonify({"message": "Invalid waste type"}), 400
 
-    # Get user and team
+    # Get user
     user_id = get_jwt_identity()
     user = db.session.get(User, user_id)
 
-    if not user.team_id:
-        return jsonify({"message": "User must be assigned to a team"}), 400
+    # Handle team_id based on user role
+    if user.is_admin():
+        if not team_id:
+            return jsonify({"message": "Team ID is required for admin users"}), 400
+        # Verify team exists
+        team = db.session.get(Team, team_id)
+        if not team:
+            return jsonify({"message": "Invalid team ID"}), 400
+    else:
+        # For non-admin users, use their assigned team
+        if not user.team_id:
+            return jsonify({"message": "User must be assigned to a team"}), 400
+        team_id = user.team_id
 
     # Create waste entry
     waste_entry = WasteEntry(
@@ -43,7 +55,7 @@ def create_waste_entry():
         weight=weight,
         description=description,
         user_id=user.id,
-        team_id=user.team_id
+        team_id=team_id
     )
 
     db.session.add(waste_entry)

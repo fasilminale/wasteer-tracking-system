@@ -34,7 +34,7 @@ def test_create_waste_entry(client, auth_tokens):
     assert response.status_code == 201
     assert response.json['waste_entry']['waste_type'] == 'glass'
     
-    # Test as admin (should succeed if admin has a team)
+    # Test as admin without team_id (should fail)
     response = client.post(
         '/api/waste',
         headers={'Authorization': f'Bearer {auth_tokens["admin"]}'},
@@ -44,9 +44,37 @@ def test_create_waste_entry(client, auth_tokens):
             'description': 'Test paper waste'
         }
     )
-    # Admin doesn't have a team in our test data, so this should fail
     assert response.status_code == 400
-    assert response.json['message'] == 'User must be assigned to a team'
+    assert response.json['message'] == 'Team ID is required for admin users'
+    
+    # Test as admin with team_id (should succeed)
+    response = client.post(
+        '/api/waste',
+        headers={'Authorization': f'Bearer {auth_tokens["admin"]}'},
+        json={
+            'waste_type': 'paper',
+            'weight': 3.0,
+            'description': 'Test paper waste',
+            'team_id': 1
+        }
+    )
+    assert response.status_code == 201
+    assert response.json['waste_entry']['waste_type'] == 'paper'
+    assert response.json['waste_entry']['team_id'] == 1
+    
+    # Test as admin with invalid team_id (should fail)
+    response = client.post(
+        '/api/waste',
+        headers={'Authorization': f'Bearer {auth_tokens["admin"]}'},
+        json={
+            'waste_type': 'paper',
+            'weight': 3.0,
+            'description': 'Test paper waste',
+            'team_id': 999  # Invalid team ID
+        }
+    )
+    assert response.status_code == 400
+    assert response.json['message'] == 'Invalid team ID'
     
     # Test with invalid waste type
     response = client.post(
