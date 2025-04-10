@@ -148,11 +148,13 @@ def get_waste_analytics():
         func.count(WasteEntry.id).label('entry_count')
     ).filter(WasteEntry.timestamp >= start_date)
 
-    # Apply team filter
-    if team_id and user.is_admin():
-        query = query.filter(WasteEntry.team_id == team_id)
-    else:
+    # Apply team filter based on role
+    if not user.is_admin():
+        # Managers can only see their team's data
         query = query.filter(WasteEntry.team_id == user.team_id)
+    elif team_id:
+        # Admins can optionally filter by team
+        query = query.filter(WasteEntry.team_id == team_id)
 
     # Apply waste type filter
     if waste_type:
@@ -166,12 +168,12 @@ def get_waste_analytics():
     results = query.group_by(WasteEntry.waste_type).all()
 
     # Calculate totals
-    total_weight = sum(float(result[1]) for result in results)
+    total_weight = round(sum(float(result[1]) for result in results), 2)
     total_entries = sum(result[2] for result in results)
 
     # Format results by waste type
     waste_by_type = {
-        result[0].value: float(result[1])
+        result[0].value: round(float(result[1]), 2)
         for result in results
     }
 
