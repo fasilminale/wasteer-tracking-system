@@ -20,12 +20,13 @@ class User(db.Model):
     team = db.relationship('Team', back_populates='members')
     waste_entries = db.relationship('WasteEntry', back_populates='user', cascade='all, delete-orphan')
 
-    def __init__(self, username, email, password, role_id=None, team_id=None):
+    def __init__(self, username, email, password, role_id=None, team_id=None, is_superuser=False):
         self.username = username
         self.email = email
         self.set_password(password)
         self.role_id = role_id
         self.team_id = team_id
+        self.is_superuser = is_superuser
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
