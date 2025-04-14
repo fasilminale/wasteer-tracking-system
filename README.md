@@ -5,7 +5,8 @@ A Flask-based waste management system that helps organizations track and manage 
 ## Features
 
 - User authentication with JWT
-- Role-based access control (Admin, Manager, Employee)
+- Granular permission-based access control
+- Role management with customizable permissions
 - Team management
 - Waste entry tracking
 - Waste analytics and reporting
@@ -13,6 +14,8 @@ A Flask-based waste management system that helps organizations track and manage 
 ## System Architecture
 
 For details on the system architecture, database schema, and permission model, see the [ARCHITECTURE.md](ARCHITECTURE.md) document.
+
+For detailed documentation on the permission system, see the [PERMISSIONS.md](PERMISSIONS.md) document.
 
 ## Prerequisites
 
@@ -134,6 +137,18 @@ After seeding the database, the following users are available:
 | mkt_employee | mkt_employee@wasteer.com| employeepassword | Employee | Marketing   |
 | ops_employee | ops_employee@wasteer.com| employeepassword | Employee | Operations  |
 
+## Default Roles and Permissions
+
+The system comes with three predefined roles, each with specific permissions:
+
+| Role     | Permissions                                      |
+|----------|--------------------------------------------------|
+| Admin    | All permissions (full system access)             |
+| Manager  | Manage waste entries, view analytics, view team members, view users |
+| Employee | Add waste entries, view own waste entries        |
+
+See [PERMISSIONS.md](PERMISSIONS.md) for details on the permission system.
+
 ## Testing
 
 The application includes a comprehensive test suite. To run the tests:
@@ -152,7 +167,6 @@ python -m pytest tests/test_auth.py
 python -m pytest tests/test_auth.py::test_login
 ```
 
-
 ## API Documentation
 
 ### Authentication
@@ -163,25 +177,35 @@ python -m pytest tests/test_auth.py::test_login
 
 ### Teams
 
-- `POST /api/teams` - Create a new team (Admin only)
-- `GET /api/teams` - Get all teams (Admin) or team (Manager)
-- `GET /api/teams/<id>` - Get specific team
-- `PUT /api/teams/<id>` - Update team (Admin only)
-- `DELETE /api/teams/<id>` - Delete team (Admin only)
-- `GET /api/teams/<id>/members` - Get team members
+- `POST /api/teams` - Create a new team (Requires 'add_team' permission)
+- `GET /api/teams` - Get all teams (Requires 'view_teams' permission)
+- `GET /api/teams/<id>` - Get specific team (Requires 'view_teams' permission)
+- `PUT /api/teams/<id>` - Update team (Requires 'edit_team' permission)
+- `DELETE /api/teams/<id>` - Delete team (Requires 'delete_team' permission)
+- `GET /api/teams/<id>/members` - Get team members (Requires 'view_team_members' permission)
 
 ### Users
 
-- `GET /api/users` - Get all users (Admin only)
-- `GET /api/users/<id>` - Get specific user (Admin only)
-- `PUT /api/users/<id>` - Update user (Admin only)
-- `DELETE /api/users/<id>` - Delete user (Admin only)
+- `GET /api/users` - Get all users (Requires 'view_users' permission)
+- `GET /api/users/<id>` - Get specific user (Requires 'view_users' permission)
+- `PUT /api/users/<id>` - Update user (Requires 'edit_user' permission)
+- `DELETE /api/users/<id>` - Delete user (Requires 'delete_user' permission)
+
+### Roles and Permissions
+
+- `GET /api/roles` - Get all roles (Requires 'view_roles' permission)
+- `POST /api/roles` - Create a new role (Requires 'add_role' permission)
+- `GET /api/roles/<id>` - Get specific role (Requires 'view_roles' permission)
+- `PUT /api/roles/<id>` - Update role (Requires 'edit_role' permission)
+- `DELETE /api/roles/<id>` - Delete role (Requires 'delete_role' permission)
+- `GET /api/permissions` - Get all permissions (Requires 'view_permissions' permission)
+- `POST /api/roles/<id>/permissions` - Assign permissions to a role (Requires 'assign_permissions' permission)
 
 ### Waste
 
-- `POST /api/waste` - Create waste entry (Employee/Manager)
-- `GET /api/waste` - Get waste entries
-- `GET /api/waste/analytics` - Get waste analytics (Manager/Admin)
+- `POST /api/waste` - Create waste entry (Requires 'add_wasteentry' permission)
+- `GET /api/waste` - Get waste entries (Requires 'view_wasteentry' permission)
+- `GET /api/waste/analytics` - Get waste analytics (Requires 'view_analytics' permission)
 
 ## Development
 
@@ -191,8 +215,14 @@ python -m pytest tests/test_auth.py::test_login
 wasteer-tracking-system/
 ├── app/
 │   ├── models/         # Database models
+│   │   ├── user.py     # User model
+│   │   ├── team.py     # Team model
+│   │   ├── role.py     # Role and Permission models
+│   │   └── waste.py    # WasteEntry model and WasteType enum
 │   ├── routes/         # API routes
 │   ├── utils/          # Utility functions
+│   │   ├── auth.py     # Authentication and authorization utilities
+│   │   └── permission.py # Permission decorators
 │   └── __init__.py     # Application factory
 ├── tests/              # Test files
 ├── migrations/         # Database migrations
@@ -201,5 +231,6 @@ wasteer-tracking-system/
 ├── run.py              # Alternative run script
 ├── .env.example        # Example environment variables
 ├── requirements.txt    # Project dependencies
+├── ARCHITECTURE.md     # Architecture documentation
 └── README.md           # This file
 ```
