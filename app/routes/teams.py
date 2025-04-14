@@ -2,13 +2,13 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from app import db
 from app.models import Team, User
-from app.utils import admin_required, manager_required, team_access_required
+from app.utils import permission_required
 
 teams_bp = Blueprint('teams', __name__)
 
 
 @teams_bp.route('', methods=['POST'])
-@admin_required()
+@permission_required('add_team')
 def create_team():
     if not request.is_json:
         return jsonify({"message": "Missing JSON in request"}), 400
@@ -41,7 +41,7 @@ def create_team():
 
 
 @teams_bp.route('', methods=['GET'])
-@manager_required()
+@permission_required('view_teams')
 def get_teams():
     user_id = get_jwt_identity()
     user = db.session.get(User, user_id)
@@ -49,8 +49,8 @@ def get_teams():
     if not user:
         return jsonify({"message": "User not found"}), 404
 
-    # Admins can see all teams, managers can only see their team
-    if user.is_admin():
+    # Admins can see all teams, others can only see their team
+    if user.is_superuser:
         teams = Team.query.all()
     else:
         team = user.team
@@ -62,8 +62,15 @@ def get_teams():
 
 
 @teams_bp.route('/<int:team_id>', methods=['GET'])
-@team_access_required(team_id_param='team_id')
+@permission_required('view_teams')
 def get_team(team_id):
+    user_id = get_jwt_identity()
+    user = db.session.get(User, user_id)
+    
+    # Check team access permission
+    if not user.is_superuser and user.team_id != team_id:
+        return jsonify({"message": "Access denied for this team"}), 403
+    
     team = db.session.get(Team, team_id)
 
     if not team:
@@ -73,10 +80,17 @@ def get_team(team_id):
 
 
 @teams_bp.route('/<int:team_id>', methods=['PUT'])
-@admin_required()
+@permission_required('edit_team')
 def update_team(team_id):
     if not request.is_json:
         return jsonify({"message": "Missing JSON in request"}), 400
+    
+    user_id = get_jwt_identity()
+    user = db.session.get(User, user_id)
+    
+    # Check team access permission (for non-superusers)
+    if not user.is_superuser and user.team_id != team_id:
+        return jsonify({"message": "Access denied for this team"}), 403
 
     team = db.session.get(Team, team_id)
 
@@ -107,7 +121,7 @@ def update_team(team_id):
 
 
 @teams_bp.route('/<int:team_id>', methods=['DELETE'])
-@admin_required()
+@permission_required('delete_team')
 def delete_team(team_id):
     team = Team.query.get(team_id)
 
@@ -129,8 +143,15 @@ def delete_team(team_id):
 
 
 @teams_bp.route('/<int:team_id>/members', methods=['GET'])
-@team_access_required(team_id_param='team_id')
+@permission_required('view_team_members')
 def get_team_members(team_id):
+    user_id = get_jwt_identity()
+    user = db.session.get(User, user_id)
+    
+    # Check team access permission (for non-superusers)
+    if not user.is_superuser and user.team_id != team_id:
+        return jsonify({"message": "Access denied for this team"}), 403
+    
     team = db.session.get(Team, team_id)
 
     if not team:

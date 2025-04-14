@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     jwt_required
 )
 from app import db
-from app.models import User, UserRole
+from app.models import User, Role
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -19,7 +19,7 @@ def register():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    role_name = data.get('role', 'employee')
+    role_id = data.get('role_id')
     team_id = data.get('team_id')
 
     # Validate required fields
@@ -32,18 +32,25 @@ def register():
     if User.query.filter_by(email=email).first():
         return jsonify({"message": "Email already exists"}), 409
 
-    # Validate and convert role
-    try:
-        role = UserRole(role_name)
-    except ValueError:
-        return jsonify({"message": "Invalid role"}), 400
+    # Validate role
+    if not role_id:
+        # Default to Employee role
+        role = Role.query.filter_by(name='Employee').first()
+        if not role:
+            return jsonify({"message": "Default role not found"}), 500
+        role_id = role.id
+    else:
+        # Verify role exists
+        role = db.session.get(Role, role_id)
+        if not role:
+            return jsonify({"message": "Invalid role"}), 400
 
     # Create new user
     user = User(
         username=username,
         email=email,
         password=password,
-        role=role,
+        role_id=role_id,
         team_id=team_id
     )
 

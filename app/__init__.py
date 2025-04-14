@@ -46,11 +46,15 @@ def create_app(test_config=None):
     from app.routes.waste import waste_bp
     from app.routes.teams import teams_bp
     from app.routes.users import users_bp
+    from app.routes.roles import roles_bp
+    from app.routes.permissions import permissions_bp
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(waste_bp, url_prefix='/api/waste')
     app.register_blueprint(teams_bp, url_prefix='/api/teams')
     app.register_blueprint(users_bp, url_prefix='/api/users')
+    app.register_blueprint(roles_bp, url_prefix='/api/roles')
+    app.register_blueprint(permissions_bp, url_prefix='/api/permissions')
 
     # Create a simple index route
     @app.route('/')

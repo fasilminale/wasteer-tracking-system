@@ -4,13 +4,13 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from app import db
 from app.models import WasteEntry, WasteType, User, Team
-from app.utils import employee_required, manager_required
+from app.utils import permission_required
 
 waste_bp = Blueprint('waste', __name__)
 
 
 @waste_bp.route('', methods=['POST'])
-@employee_required()
+@permission_required('add_wasteentry')
 def create_waste_entry():
     if not request.is_json:
         return jsonify({"message": "Missing JSON in request"}), 400
@@ -36,7 +36,7 @@ def create_waste_entry():
     user = db.session.get(User, user_id)
 
     # Handle team_id based on user role
-    if user.is_admin():
+    if user.is_superuser:
         if not team_id:
             return jsonify({"message": "Team ID is required for admin users"}), 400
         # Verify team exists
@@ -68,7 +68,7 @@ def create_waste_entry():
 
 
 @waste_bp.route('', methods=['GET'])
-@employee_required()
+@permission_required('view_wasteentry')
 def get_waste_entries():
     user_id = get_jwt_identity()
     user = db.session.get(User, user_id)
@@ -82,14 +82,13 @@ def get_waste_entries():
     # Base query
     query = WasteEntry.query
 
-    # Apply filters
-    if team_id and user.is_admin():
+    # Apply filters based on user permissions
+    if team_id and user.is_superuser:
         query = query.filter(WasteEntry.team_id == team_id)
-    elif not user.is_admin() and user.is_manager():
+    elif user.has_permission('view_analytics'):  # Manager-level permission
         query = query.filter(WasteEntry.team_id == user.team_id)
-    elif not user.is_admin() and not user.is_manager():
+    else:  # Regular employee
         query = query.filter(WasteEntry.user_id == user.id)
-    # No filter for admin without team_id - they see all entries
 
     if waste_type:
         try:
@@ -120,7 +119,7 @@ def get_waste_entries():
 
 
 @waste_bp.route('/analytics', methods=['GET'])
-@manager_required()
+@permission_required('view_analytics')
 def get_waste_analytics():
     user_id = get_jwt_identity()
     user = db.session.get(User, user_id)
@@ -149,7 +148,7 @@ def get_waste_analytics():
     ).filter(WasteEntry.timestamp >= start_date)
 
     # Apply team filter based on role
-    if not user.is_admin():
+    if not user.is_superuser:
         # Managers can only see their team's data
         query = query.filter(WasteEntry.team_id == user.team_id)
     elif team_id:
