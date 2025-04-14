@@ -1,7 +1,7 @@
 """
 Tests for the users routes.
 """
-from app.models import User, UserRole
+from app.models import User, Role
 
 
 def test_get_users(client, auth_tokens):
@@ -14,12 +14,12 @@ def test_get_users(client, auth_tokens):
     assert response.status_code == 200
     assert len(response.json['users']) >= 3  # admin, manager, employee
     
-    # Test as manager (should be denied)
+    # Test as manager (should succeed with the new permission system)
     response = client.get(
         '/api/users',
         headers={'Authorization': f'Bearer {auth_tokens["manager"]}'}
     )
-    assert response.status_code == 403
+    assert response.status_code == 200
     
     # Test as employee (should be denied)
     response = client.get(
@@ -44,12 +44,12 @@ def test_get_users(client, auth_tokens):
     
     # Test with role filter
     response = client.get(
-        '/api/users?role=manager',
+        '/api/users?role_id=2',  # Manager role ID
         headers={'Authorization': f'Bearer {auth_tokens["admin"]}'}
     )
     assert response.status_code == 200
     for user in response.json['users']:
-        assert user['role'] == 'manager'
+        assert user['role']['name'] == 'Manager'
     
     # Test without authentication
     response = client.get('/api/users')
@@ -72,12 +72,12 @@ def test_get_user(client, auth_tokens, app):
         assert response.json['username'] == 'employee'
         assert response.json['email'] == 'employee@test.com'
         
-        # Test as manager (should be denied)
+        # Test as manager from the same team (should succeed with new permissions)
         response = client.get(
             f'/api/users/{user_id}',
             headers={'Authorization': f'Bearer {auth_tokens["manager"]}'}
         )
-        assert response.status_code == 403
+        assert response.status_code == 200
         
         # Test as employee (should be denied)
         response = client.get(
@@ -112,13 +112,13 @@ def test_update_user(client, auth_tokens, app):
             json={
                 'username': 'updated_employee',
                 'email': 'updated_employee@test.com',
-                'role': 'manager'
+                'role_id': 2  # Manager role
             }
         )
         assert response.status_code == 200
         assert response.json['user']['username'] == 'updated_employee'
         assert response.json['user']['email'] == 'updated_employee@test.com'
-        assert response.json['user']['role'] == 'manager'
+        assert response.json['user']['role']['name'] == 'Manager'
         
         # Test as manager (should be denied)
         response = client.put(
@@ -155,12 +155,15 @@ def test_update_user(client, auth_tokens, app):
 def test_delete_user(client, auth_tokens, app):
     """Test deleting a user."""
     with app.app_context():
+        # Get the employee role ID
+        employee_role = Role.query.filter_by(name='Employee').first()
+        
         # Create a test user to delete
         test_user = User(
             username="test_delete",
             email="test_delete@test.com",
             password="testpass",
-            role=UserRole.EMPLOYEE
+            role_id=employee_role.id
         )
         from app import db
         db.session.add(test_user)
@@ -192,7 +195,7 @@ def test_delete_user(client, auth_tokens, app):
             username="test_delete2",
             email="test_delete2@test.com",
             password="testpass",
-            role=UserRole.EMPLOYEE
+            role_id=employee_role.id
         )
         db.session.add(test_user2)
         db.session.commit()
@@ -215,4 +218,13 @@ def test_delete_user(client, auth_tokens, app):
         
         # Test without authentication
         response = client.delete(f'/api/users/{user_id2}')
-        assert response.status_code == 401 
+        assert response.status_code == 401
+        
+        # Test deleting the last admin user
+        admin = User.query.filter_by(username='admin').first()
+        # This should be rejected because it's the last admin
+        response = client.delete(
+            f'/api/users/{admin.id}',
+            headers={'Authorization': f'Bearer {auth_tokens["admin"]}'}
+        )
+        assert response.status_code == 400 

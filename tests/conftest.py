@@ -5,7 +5,7 @@ import os
 import tempfile
 import pytest
 from app import create_app, db
-from app.models import User, UserRole, Team, WasteEntry, WasteType
+from app.models import User, Team, WasteEntry, WasteType, Role, Permission
 
 
 @pytest.fixture
@@ -51,6 +51,49 @@ def runner(app):
 
 def _init_test_data():
     """Initialize test data for the database."""
+    # Create permissions
+    permissions = {
+        'add_wasteentry': Permission(code='add_wasteentry', name='Can add waste entry'),
+        'edit_wasteentry': Permission(code='edit_wasteentry', name='Can edit waste entry'),
+        'delete_wasteentry': Permission(code='delete_wasteentry', name='Can delete waste entry'),
+        'view_wasteentry': Permission(code='view_wasteentry', name='Can view waste entry'),
+        'view_analytics': Permission(code='view_analytics', name='Can view analytics'),
+        'view_users': Permission(code='view_users', name='Can view users'),
+        'manage_users': Permission(code='manage_users', name='Can manage users'),
+        'view_teams': Permission(code='view_teams', name='Can view teams'),
+        'view_team_members': Permission(code='view_team_members', name='Can view team members')
+    }
+    
+    db.session.add_all(permissions.values())
+    db.session.commit()
+    
+    # Create roles
+    admin_role = Role(name='Admin')
+    manager_role = Role(name='Manager')
+    employee_role = Role(name='Employee')
+    
+    # Assign permissions to roles
+    admin_role.permissions = list(permissions.values())
+    
+    manager_role.permissions = [
+        permissions['add_wasteentry'],
+        permissions['edit_wasteentry'],
+        permissions['delete_wasteentry'],
+        permissions['view_wasteentry'],
+        permissions['view_analytics'],
+        permissions['view_teams'],
+        permissions['view_team_members'],
+        permissions['view_users']
+    ]
+    
+    employee_role.permissions = [
+        permissions['add_wasteentry'],
+        permissions['view_wasteentry']
+    ]
+    
+    db.session.add_all([admin_role, manager_role, employee_role])
+    db.session.commit()
+    
     # Create test teams
     engineering = Team(name="Engineering", description="Engineering team")
     marketing = Team(name="Marketing", description="Marketing team")
@@ -63,14 +106,15 @@ def _init_test_data():
         username="admin",
         email="admin@test.com",
         password="adminpass",
-        role=UserRole.ADMIN
+        role_id=admin_role.id,
+        is_superuser=True
     )
     
     manager = User(
         username="manager",
         email="manager@test.com",
         password="managerpass",
-        role=UserRole.MANAGER,
+        role_id=manager_role.id,
         team_id=engineering.id
     )
     
@@ -78,7 +122,7 @@ def _init_test_data():
         username="employee",
         email="employee@test.com",
         password="employeepass",
-        role=UserRole.EMPLOYEE,
+        role_id=employee_role.id,
         team_id=engineering.id
     )
     

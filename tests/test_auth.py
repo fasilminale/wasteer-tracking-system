@@ -1,9 +1,6 @@
 """
 Tests for the authentication routes.
 """
-import json
-import pytest
-from app.models import User
 
 
 def test_register(client):
@@ -13,13 +10,13 @@ def test_register(client):
         'username': 'newuser',
         'email': 'newuser@test.com',
         'password': 'newuserpass',
-        'role': 'employee'
+        'role_id': 3  # Employee role
     })
     assert response.status_code == 201
     assert response.json['message'] == 'User registered successfully'
     assert response.json['user']['username'] == 'newuser'
     assert response.json['user']['email'] == 'newuser@test.com'
-    assert response.json['user']['role'] == 'employee'
+    assert response.json['user']['role']['name'] == 'Employee'
     
     # Test registration with existing username
     response = client.post('/api/auth/register', json={
@@ -58,6 +55,7 @@ def test_login(client):
     assert response.json['message'] == 'Login successful'
     assert 'access_token' in response.json
     assert response.json['user']['username'] == 'admin'
+    assert response.json['user']['is_superuser'] is True
     
     # Test login with invalid username
     response = client.post('/api/auth/login', json={
@@ -92,7 +90,8 @@ def test_profile(client, auth_tokens):
     assert response.status_code == 200
     assert response.json['username'] == 'admin'
     assert response.json['email'] == 'admin@test.com'
-    assert response.json['role'] == 'admin'
+    assert response.json['is_superuser'] is True
+    assert response.json['role']['name'] == 'Admin'
     
     # Test profile access without token
     response = client.get('/api/auth/profile')
