@@ -1,33 +1,34 @@
 # Waste Management System
 
-A Flask-based waste management system that helps organizations track and manage their waste disposal.
+A Flask-based system for tracking and managing organizational waste disposal.
 
 ## Features
 
-- User authentication with JWT
-- Granular permission-based access control
-- Role management with customizable permissions
-- Team management
+- JWT authentication
+- Permission-based access control
+- Role management
+- Team organization
 - Waste entry tracking
-- Waste analytics and reporting
+- Analytics and reporting
 
 ## System Architecture
 
 For details on the system architecture, database schema, and permission model, see the [ARCHITECTURE.md](ARCHITECTURE.md) document.
 
-For detailed documentation on the permission system, see the [PERMISSIONS.md](PERMISSIONS.md) document.
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and database schema
+- [PERMISSIONS.md](PERMISSIONS.md) - Permission system details
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.8+
 - PostgreSQL database
-- pip (Python package manager)
+- pip
 
-## Setup Instructions
+## Setup
 
-### Automated Setup (Recommended)
-
-The easiest way to set up the project is using the provided setup script:
+### Automated Setup
 
 ```bash
 # Clone the repository
@@ -41,16 +42,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-The setup script will:
-1. Create a virtual environment
-2. Install dependencies
-3. Create a `.env` file with default configuration
-4. Set up the database and run migrations
-5. Seed the database with initial test data
-
 ### Manual Setup
-
-If you prefer to set up the project manually:
 
 1. Clone the repository:
 ```bash
@@ -81,10 +73,7 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # Edit .env with your configuration
-# Required variables:
-# - DATABASE_URL: PostgreSQL connection string
-# - SECRET_KEY: Application secret key
-# - JWT_SECRET_KEY: JWT token secret key
+# Required: DATABASE_URL, SECRET_KEY, JWT_SECRET_KEY
 ```
 
 5. Set up the database:
@@ -92,39 +81,32 @@ cp .env.example .env
 # Create the database
 createdb wasteer
 
-# Initialize database migrations
+# Initialize migrations
 flask db init
-
-# Create initial migration
 flask db migrate -m "Initial migration"
-
-# Apply migrations
 flask db upgrade
 ```
 
-6. Seed the database with initial data:
+6. Seed the database:
 ```bash
 python seed.py
 ```
 
 ## Running the Application
 
-1. Start the Flask development server:
 ```bash
-# Using flask command
+# Start the server
 flask run
 
-# OR using the run.py script
+# Alternatively
 python run.py
 ```
 
-2. Access the application:
+Access the application:
 - API: http://localhost:5000/api
-- Swagger Documentation: http://localhost:5000/api/docs
+- Swagger: http://localhost:5000/api/docs
 
 ## Default Users
-
-After seeding the database, the following users are available:
 
 | Username     | Email                  | Password        | Role     | Team        |
 |--------------|------------------------|-----------------|----------|-------------|
@@ -137,100 +119,83 @@ After seeding the database, the following users are available:
 | mkt_employee | mkt_employee@wasteer.com| employeepassword | Employee | Marketing   |
 | ops_employee | ops_employee@wasteer.com| employeepassword | Employee | Operations  |
 
-## Default Roles and Permissions
-
-The system comes with three predefined roles, each with specific permissions:
+## Default Roles
 
 | Role     | Permissions                                      |
 |----------|--------------------------------------------------|
-| Admin    | All permissions (full system access)             |
-| Manager  | Manage waste entries, view analytics, view team members, view users |
-| Employee | Add waste entries, view own waste entries        |
-
-See [PERMISSIONS.md](PERMISSIONS.md) for details on the permission system.
+| Admin    | All permissions                                  |
+| Manager  | Team management, analytics, user viewing         |
+| Employee | Personal waste entry management                  |
 
 ## Testing
 
-The application includes a comprehensive test suite. To run the tests:
-
 ```bash
+# Set PYTHONPATH
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+
 # Run all tests
 python -m pytest
 
-# Run tests with coverage report
+# Run with coverage
 python -m pytest --cov=app --cov-report=html
 
-# Run a specific test file
+# Run specific test file
 python -m pytest tests/test_auth.py
 
-# Run a specific test
+# Run specific test
 python -m pytest tests/test_auth.py::test_login
 ```
 
-## API Documentation
+## API Endpoints
 
 ### Authentication
-
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login and get JWT token
-- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/register` - Register user
+- `POST /api/auth/login` - Login
+- `GET /api/auth/profile` - Get profile
 
 ### Teams
-
-- `POST /api/teams` - Create a new team (Requires 'add_team' permission)
-- `GET /api/teams` - Get all teams (Requires 'view_teams' permission)
-- `GET /api/teams/<id>` - Get specific team (Requires 'view_teams' permission)
-- `PUT /api/teams/<id>` - Update team (Requires 'edit_team' permission)
-- `DELETE /api/teams/<id>` - Delete team (Requires 'delete_team' permission)
-- `GET /api/teams/<id>/members` - Get team members (Requires 'view_team_members' permission)
+- `POST /api/teams` - Create team (requires 'add_team')
+- `GET /api/teams` - Get teams (requires 'view_teams')
+- `GET /api/teams/<id>` - Get team (requires 'view_teams')
+- `PUT /api/teams/<id>` - Update team (requires 'edit_team')
+- `DELETE /api/teams/<id>` - Delete team (requires 'delete_team')
+- `GET /api/teams/<id>/members` - Get members (requires 'view_team_members')
 
 ### Users
+- `GET /api/users` - Get users (requires 'view_users')
+- `GET /api/users/<id>` - Get user (requires 'view_users')
+- `PUT /api/users/<id>` - Update user (requires 'edit_user')
+- `DELETE /api/users/<id>` - Delete user (requires 'delete_user')
 
-- `GET /api/users` - Get all users (Requires 'view_users' permission)
-- `GET /api/users/<id>` - Get specific user (Requires 'view_users' permission)
-- `PUT /api/users/<id>` - Update user (Requires 'edit_user' permission)
-- `DELETE /api/users/<id>` - Delete user (Requires 'delete_user' permission)
-
-### Roles and Permissions
-
-- `GET /api/roles` - Get all roles (Requires 'view_roles' permission)
-- `POST /api/roles` - Create a new role (Requires 'add_role' permission)
-- `GET /api/roles/<id>` - Get specific role (Requires 'view_roles' permission)
-- `PUT /api/roles/<id>` - Update role (Requires 'edit_role' permission)
-- `DELETE /api/roles/<id>` - Delete role (Requires 'delete_role' permission)
-- `GET /api/permissions` - Get all permissions (Requires 'view_permissions' permission)
-- `POST /api/roles/<id>/permissions` - Assign permissions to a role (Requires 'assign_permissions' permission)
+### Roles
+- `GET /api/roles` - Get roles (requires 'view_roles')
+- `POST /api/roles` - Create role (requires 'add_role')
+- `GET /api/roles/<id>` - Get role (requires 'view_roles')
+- `PUT /api/roles/<id>` - Update role (requires 'edit_role')
+- `DELETE /api/roles/<id>` - Delete role (requires 'delete_role')
+- `GET /api/permissions` - Get permissions (requires 'view_permissions')
+- `POST /api/roles/<id>/permissions` - Assign permissions (requires 'assign_permissions')
 
 ### Waste
+- `POST /api/waste` - Create entry (requires 'add_wasteentry')
+- `GET /api/waste` - Get entries (requires 'view_wasteentry')
+- `GET /api/waste/analytics` - Get analytics (requires 'view_analytics')
 
-- `POST /api/waste` - Create waste entry (Requires 'add_wasteentry' permission)
-- `GET /api/waste` - Get waste entries (Requires 'view_wasteentry' permission)
-- `GET /api/waste/analytics` - Get waste analytics (Requires 'view_analytics' permission)
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 wasteer-tracking-system/
 ├── app/
-│   ├── models/         # Database models
-│   │   ├── user.py     # User model
-│   │   ├── team.py     # Team model
-│   │   ├── role.py     # Role and Permission models
-│   │   └── waste.py    # WasteEntry model and WasteType enum
-│   ├── routes/         # API routes
-│   ├── utils/          # Utility functions
-│   │   ├── auth.py     # Authentication and authorization utilities
-│   │   └── permission.py # Permission decorators
-│   └── __init__.py     # Application factory
-├── tests/              # Test files
-├── migrations/         # Database migrations
-├── seed.py             # Database seeding script
-├── setup.sh            # Setup automation script
-├── run.py              # Alternative run script
-├── .env.example        # Example environment variables
-├── requirements.txt    # Project dependencies
-├── ARCHITECTURE.md     # Architecture documentation
-└── README.md           # This file
+│   ├── models/      # Database models
+│   ├── routes/      # API routes
+│   ├── utils/       # Utility functions
+│   └── __init__.py  # Application factory
+├── tests/           # Test files
+├── migrations/      # Database migrations
+├── seed.py          # Database seeding
+├── setup.sh         # Setup script
+├── run.py           # Run script
+├── requirements.txt # Dependencies
+├── ARCHITECTURE.md  # Architecture docs
+└── README.md        # This file
 ```
